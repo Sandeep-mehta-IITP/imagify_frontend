@@ -2,9 +2,10 @@
 
 @import "tailwindcss";
 
-*{
+*{  
     font-family: Outfit;
     box-sizing: border-box;
+    
 }
 
 html, body {

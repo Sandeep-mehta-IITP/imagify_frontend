@@ -60,7 +60,11 @@ const AppContextProvider = (props) => {
       toast.error(error?.response?.data?.message || error.message);
     }
   };
-  
+
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -87,6 +91,7 @@ const AppContextProvider = (props) => {
     loadCreditsData,
     logout,
     generateImage,
+    login,
   };
 
   return (
