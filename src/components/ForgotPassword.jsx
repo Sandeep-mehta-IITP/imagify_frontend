@@ -1,8 +1,7 @@
 import axios from "axios";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
-import { useNavigate } from "react-router-dom";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -11,8 +10,42 @@ const ForgotPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-  const { setShowLogin, backendUrl } = useContext(AppContext);
+  const { setShowLogin, backendUrl, setShowForgotPassword } =
+    useContext(AppContext);
+
+  const handleCheckEmail = async () => {
+    if (!email) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+        const { data } = await axios.post(backendUrl + '/api/user/check-email', { email });
+
+        if (data.success) {
+            toast.success("Email is registered. Sending OTP...");
+            handleSendEmail();
+        } else {
+            toast.error(ata.message || "Email not registered. Please enter registered email address.")
+        }
+    } catch (error) {
+        console.log(error);
+        toast.error(
+          error.response?.data?.message ||
+            "Something went wrong. Please try again."
+        );
+      } finally {
+        setLoading(false);
+      }
+  };
 
   const handleSendEmail = async () => {
     if (!email) {
@@ -33,7 +66,7 @@ const ForgotPassword = () => {
         { email }
       );
       if (data.success) {
-        toast.success("OTP senr to your email address.");
+        toast.success("OTP sent to your email address.");
         setStep(2);
       } else {
         toast.error(data.message || "Something went wrong. Please try again.");
@@ -93,7 +126,7 @@ const ForgotPassword = () => {
         toast.success("Password reset successfully.");
 
         setShowLogin(true);
-        navigate("/login");
+        setShowForgotPassword(false);
 
         setStep(1);
         setEmail("");
@@ -113,70 +146,97 @@ const ForgotPassword = () => {
     }
   };
 
+  useEffect(() => {
+    // Prevent scrolling and lock the page
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed"; // Lock the body in place
+
+    return () => {
+      // Restore scroll and positioning when the component unmounts
+      document.body.style.overflow = "unset";
+      document.body.style.position = "unset";
+    };
+  }, []);
+
   return (
-    <div className="w-full max-w-md mx-auto p-4 bg-white shadow-md rounded-lg mt-10">
-      <h2 className="text-2xl font-semibold mb-4 text-center">
-        Forgot Password
-      </h2>
+    <div className="fixed top-0 left-0 right-0 bottom-0 z-10 backdrop-blur-sm bg-black/30 flex items-center justify-center">
+      <div className="w-full max-w-md mx-auto p-6 bg-white shadow-lg rounded-xl mt-12 min-h-[400px] bg-gradient-to-br from-blue-50 to-purple-50 border border-gray-200 transform transition-all duration-300 hover:shadow-2xl">
+        <h2 className="text-3xl font-bold mb-6 text-center text-blue-700 tracking-tight">
+          Forgot Password
+        </h2>
 
-      {step === 1 && (
-        <div>
-          <input
-            type="email"
-            placeholder="Enter your registered email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value.toLowerCase())}
-            className="w-full border p-2 rounded mb-3"
-          />
-          <button
-            onClick={handleSendEmail}
-            disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-          >
-            {loading ? "Sending..." : "Send OTP"}
-          </button>
-        </div>
-      )}
+        {step === 1 && (
+          <div>
+            <input
+              type="email"
+              placeholder="Enter your registered email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value.toLowerCase())}
+              disabled={loading}
+              className="w-full border border-gray-300 p-3 mt-6.5 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+            />
+            <button
+              onClick={handleCheckEmail}
+              disabled={loading}
+              className="w-full bg-blue-600 text-white mt-4.5 px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:bg-blue-400"
+            >
+              {loading ? "Sending..." : "Send OTP"}
+            </button>
+          </div>
+        )}
 
-      {step === 2 && (
-        <div>
-          <input
-            type="text"
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="w-full border p-2 rounded mb-3"
-          />
+        {step === 2 && (
+          <div>
+            <input
+              type="text"
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              disabled={loading}
+              className="w-full border border-gray-300 p-3 mt-6.5 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-green-600 transition duration-200"
+            />
 
-          <button
-            onClick={handleVerifyOtp}
-            disabled={loading}
-            className="bg-red-500 text-white px-4 py-2 rounded"
-          >
-            {loading ? "Verifying..." : "Verify OTP"}
-          </button>
-        </div>
-      )}
+            <button
+              onClick={handleVerifyOtp}
+              disabled={loading}
+              className="w-full bg-[#20C997] text-white mt-4.5 px-4 py-2 rounded-lg font-semibold hover:bg-[#20C999] focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 transition duration-200"
+            >
+              {loading ? "Verifying..." : "Verify OTP"}
+            </button>
+          </div>
+        )}
 
-      {step === 3 && (
-        <div>
-          <input
-            type="password"
-            placeholder="Enter new password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            className="w-full border p-2 rounded mb-3"
-          />
+        {step === 3 && (
+          <div>
+            <input
+              type="password"
+              placeholder="Enter new password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full border border-gray-300 mt-6.5 p-3 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+              disabled={loading}
+            />
 
-          <button
-            onClick={handleResetPassword}
-            disabled={loading}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            {loading ? "Resetting..." : "Reset Password"}
-          </button>
-        </div>
-      )}
+            <button
+              onClick={handleResetPassword}
+              disabled={loading}
+              className="w-full bg-green-600 text-white mt-4.5 px-4 py-2 rounded-lg font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 disabled:bg-green-400"
+            >
+              {loading ? "Resetting..." : "Reset Password"}
+            </button>
+          </div>
+        )}
+
+        <p
+          className="text-md text-blue-600 mt-6 cursor-pointer text-center font-medium hover:text-blue-800 transition duration-150"
+          onClick={() => {
+            setShowForgotPassword(false);
+            setShowLogin(true);
+          }}
+        >
+          Back to Login
+        </p>
+      </div>
     </div>
   );
 };

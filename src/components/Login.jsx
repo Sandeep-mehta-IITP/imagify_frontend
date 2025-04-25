@@ -4,7 +4,6 @@ import { AppContext } from "../context/AppContext";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
 
 
 const Login = () => {
@@ -14,9 +13,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-
-  const { setShowLogin, backendUrl, setToken, setUser } =
+  
+  const { setShowLogin, backendUrl, setToken, setUser, setShowForgotPassword } =
     useContext(AppContext);
 
   const onSubmitHandler = async (e) => {
@@ -76,9 +74,14 @@ const Login = () => {
   };
 
   useEffect(() => {
+    // Prevent scrolling and lock the page
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";  // Lock the body in place
+    
     return () => {
+      // Restore scroll and positioning when the component unmounts
       document.body.style.overflow = "unset";
+      document.body.style.position = "unset";
     };
   }, []);
 
@@ -126,7 +129,7 @@ const Login = () => {
         <div className="border px-6 py-2 flex items-center gap-2 rounded-full mt-4">
           <img src={assets.lock_icon} alt="" className="w-5" />
           <input
-            type="pssword"
+            type="password"
             onChange={(e) => setPassword(e.target.value)}
             value={password}
             className="outline-none text-sm"
@@ -135,8 +138,12 @@ const Login = () => {
           />
         </div>
 
-        <button className="text-sm text-blue-600 my-4 cursor-pointer"
-        onClick={() => navigate("/forgot-password")}
+        <button
+          className="text-sm text-blue-600 my-4 cursor-pointer"
+          onClick={() => {
+            setShowLogin(false);
+            setShowForgotPassword(true);
+          }}
         >
           Forgot Password?
         </button>

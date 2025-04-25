@@ -10,6 +10,7 @@ const AppContextProvider = (props) => {
   const [showLogin, setShowLogin] = useState(false);
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [credit, setCredit] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const navigate = useNavigate();
@@ -72,6 +73,7 @@ const AppContextProvider = (props) => {
     localStorage.removeItem("token");
     setToken("");
     setUser(null);
+    setShowForgotPassword(false);
   };
 
   useEffect(() => {
@@ -94,6 +96,8 @@ const AppContextProvider = (props) => {
     logout,
     generateImage,
     login,
+    showForgotPassword,
+    setShowForgotPassword,
   };
 
   return (
