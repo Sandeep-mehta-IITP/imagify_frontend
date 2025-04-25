@@ -4,22 +4,37 @@ import { AppContext } from "../context/AppContext";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 
 const Login = () => {
   const [state, setState] = useState("Login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const { 
-    setShowLogin, 
-    backendUrl, 
-    setToken, 
-    setUser 
-  } = useContext(AppContext);
+  const navigate = useNavigate();
+
+  const { setShowLogin, backendUrl, setToken, setUser } =
+    useContext(AppContext);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
+
+    // ✅ Basic validations before sending to backend
+    if (!email || !password || (state === "Register" && !name)) {
+      toast.error("Please fill all required fields.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
     try {
       if (state === "Login") {
         const { data } = await axios.post(backendUrl + "/api/user/login", {
@@ -33,7 +48,8 @@ const Login = () => {
           localStorage.setItem("token", data.token);
           setShowLogin(false);
         } else {
-          toast.error(data.message)
+          // ⚠️ Backend se mila custom message
+          toast.error(data.message || "Invalid email or password.");
         }
       } else {
         const { data } = await axios.post(backendUrl + "/api/user/register", {
@@ -48,11 +64,14 @@ const Login = () => {
           localStorage.setItem("token", data.token);
           setShowLogin(false);
         } else {
-          toast.error(data.message)
+          toast.error(data.message || "Registration failed.");
         }
       }
     } catch (error) {
-      toast.error(error.message)
+      // ⚠️ Backend se aaye error handle karo gracefully
+      toast.error(error?.response?.data?.message || error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,7 +115,7 @@ const Login = () => {
           <img src={assets.email_icon} alt="" className="w-5" />
           <input
             type="email"
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value.toLowerCase())}
             value={email}
             className="outline-none text-sm"
             placeholder="Email Address"
@@ -116,12 +135,22 @@ const Login = () => {
           />
         </div>
 
-        <p className="text-sm text-blue-600 my-4 cursor-pointer">
+        <button className="text-sm text-blue-600 my-4 cursor-pointer"
+        onClick={() => navigate("/forgot-password")}
+        >
           Forgot Password?
-        </p>
+        </button>
 
-        <button className="bg-blue-600 w-full text-white py-2 cursor-pointer rounded-full">
-          {state === Login ? "Login" : "create account"}
+        <button
+          className="bg-blue-600 w-full text-white py-2 cursor-pointer rounded-full"
+          onClick={onSubmitHandler}
+          disabled={loading}
+        >
+          {state === "Login"
+            ? loading
+              ? "Logging in..."
+              : "Login"
+            : "Create Account"}
         </button>
 
         {state === "Login" ? (

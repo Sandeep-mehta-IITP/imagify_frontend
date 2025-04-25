@@ -18,8 +18,8 @@ const AppContextProvider = (props) => {
     try {
       const { data } = await axios.get(backendUrl + "/api/user/credits", {
         headers: {
-          token,
-        },
+          Authorization: `Bearer ${token}`,
+        }
       });
 
       if (data.success) {
@@ -44,7 +44,9 @@ const AppContextProvider = (props) => {
         backendUrl + "/api/image/generate-image",
         { prompt },
         {
-          headers: { token },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
         }
       );
   

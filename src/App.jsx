@@ -8,6 +8,7 @@ import Footer from "./components/Footer";
 import Login from "./components/Login";
 import { AppContext } from "./context/AppContext";
 import { ToastContainer, toast } from 'react-toastify';
+import ForgotPassword from "./components/ForgotPassword";
 
 function App() {
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/result" element={<Result />} />
         <Route path="/buy" element={<BuyCredit />} />
         <Route path="*" element={<Home />} />
+        <Route path="/forgot-password" element = {<ForgotPassword />} />
       </Routes>
       <Footer />
     </div>

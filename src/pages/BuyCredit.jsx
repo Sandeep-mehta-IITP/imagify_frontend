@@ -23,9 +23,13 @@ const BuyCredit = () => {
       receipt: order.receipt,
       handler: async (res) => {
         try {
-          const { data } = await axios.post(backendUrl + "/api/user/verify-razor", res, {
-            headers: { token },
-          })
+          const { data } = await axios.post(
+            backendUrl + "/api/user/verify-razor",
+            res,
+            {
+              headers: { token },
+            }
+          );
 
           if (data.success) {
             toast.success("Payment successful! Credits added.");
@@ -62,7 +66,9 @@ const BuyCredit = () => {
         backendUrl + "/api/user/pay-razor",
         { planId, userId: user._id },
         {
-          headers: { token },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
