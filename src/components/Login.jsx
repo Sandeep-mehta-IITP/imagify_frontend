@@ -4,7 +4,8 @@ import { AppContext } from "../context/AppContext";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { toast } from "react-toastify";
-
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import checkPasswordStrength from "../utils/checkPasswordStrength.js";
 
 const Login = () => {
   const [state, setState] = useState("Login");
@@ -12,8 +13,9 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(null);
 
-  
   const { setShowLogin, backendUrl, setToken, setUser, setShowForgotPassword } =
     useContext(AppContext);
 
@@ -76,8 +78,8 @@ const Login = () => {
   useEffect(() => {
     // Prevent scrolling and lock the page
     document.body.style.overflow = "hidden";
-    document.body.style.position = "fixed";  // Lock the body in place
-    
+    document.body.style.position = "fixed"; // Lock the body in place
+
     return () => {
       // Restore scroll and positioning when the component unmounts
       document.body.style.overflow = "unset";
@@ -126,17 +128,34 @@ const Login = () => {
           />
         </div>
 
-        <div className="border px-6 py-2 flex items-center gap-2 rounded-full mt-4">
+        <div className="relative border px-6 py-2 flex items-center gap-2 rounded-full mt-4">
           <img src={assets.lock_icon} alt="" className="w-5" />
           <input
-            type="password"
-            onChange={(e) => setPassword(e.target.value)}
+            type={showPassword ? "text" : "password"}
+            onChange={(e) => {
+              const value = e.target.value;
+              setPassword(value);
+              setPasswordStrength(checkPasswordStrength(value));
+            }}
             value={password}
-            className="outline-none text-sm"
+            className="outline-none text-sm w-full pr-8 "
             placeholder="Password"
             required
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </button>
         </div>
+
+        {passwordStrength && (
+          <p className={`text-sm mt-1 font-medium ${passwordStrength.color}`}>
+            Strength: {passwordStrength.label}
+          </p>
+        )}
 
         <button
           className="text-sm text-blue-600 my-4 cursor-pointer"
@@ -153,10 +172,12 @@ const Login = () => {
           onClick={onSubmitHandler}
           disabled={loading}
         >
-          {state === "Login"
-            ? loading
+          {loading
+            ? state === "Login"
               ? "Logging in..."
-              : "Login"
+              : "Creating account..."
+            : state === "Login"
+            ? "Login"
             : "Create Account"}
         </button>
 

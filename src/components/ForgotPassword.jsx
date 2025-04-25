@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { AppContext } from "../context/AppContext";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import checkPasswordStrength from "../utils/checkPasswordStrength.js";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -9,6 +11,8 @@ const ForgotPassword = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(null);
 
   const { setShowLogin, backendUrl, setShowForgotPassword } =
     useContext(AppContext);
@@ -28,23 +32,28 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-        const { data } = await axios.post(backendUrl + '/api/user/check-email', { email });
+      const { data } = await axios.post(backendUrl + "/api/user/check-email", {
+        email,
+      });
 
-        if (data.success) {
-            toast.success("Email is registered. Sending OTP...");
-            handleSendEmail();
-        } else {
-            toast.error(ata.message || "Email not registered. Please enter registered email address.")
-        }
-    } catch (error) {
-        console.log(error);
+      if (data.success) {
+        toast.success("Email is registered. Sending OTP...");
+        handleSendEmail();
+      } else {
         toast.error(
-          error.response?.data?.message ||
-            "Something went wrong. Please try again."
+          data.message ||
+            "Email not registered. Please enter registered email address."
         );
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.log(error);
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSendEmail = async () => {
@@ -146,6 +155,13 @@ const ForgotPassword = () => {
     }
   };
 
+  const getBorderColor = () => {
+    if (!passwordStrength) return "border-gray-300";
+    if (passwordStrength.label === "Weak") return "border-red-500";
+    if (passwordStrength.label === "Moderate") return "border-yellow-500";
+    if (passwordStrength.label === "Strong") return "border-green-600";
+  };
+
   useEffect(() => {
     // Prevent scrolling and lock the page
     document.body.style.overflow = "hidden";
@@ -207,15 +223,34 @@ const ForgotPassword = () => {
         )}
 
         {step === 3 && (
-          <div>
+          <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter new password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full border border-gray-300 mt-6.5 p-3 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+              onChange={(e) => {
+                const value = e.target.value;
+                setNewPassword(value);
+                setPasswordStrength(checkPasswordStrength(value));
+              }}
+              className={`w-full mt-6.5 p-3 pr-10 rounded-lg bg-gray-50 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 ${getBorderColor()}`}
               disabled={loading}
             />
+            {passwordStrength && (
+              <p
+                className={`text-sm mt-1 font-medium ${passwordStrength.color}`}
+              >
+                Strength: {passwordStrength.label}
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-[calc(2.8rem+6.5px)] transform -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
 
             <button
               onClick={handleResetPassword}
